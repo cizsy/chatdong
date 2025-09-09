@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Film</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #1c1c1c;
+    }
+
+    .chat-container {
+      width: 360px;
+      height: 600px;
+      background: #2c2c2c;
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .chat-header {
+      background: #ff4444;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      color: white;
+    }
+
+    .message {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 75%;
+    }
+
+    .bot {
+      background: #444;
+      align-self: flex-start;
+    }
+
+    .user {
+      background: #ff4444;
+      align-self: flex-end;
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #444;
+      background: #1c1c1c;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: white;
+    }
+
+    .chat-input button {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 0 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">ChatDong</div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="message bot">Halo! Mau cari film apa hari ini?</div>
+  </div>
+  <div class="chat-input">
+    <input type="text" id="userInput" placeholder="Ketik pesan...">
+    <button onclick="sendMessage()">Kirim</button>
+  </div>
+</div>
+
+<script>
+  // === DATA JAWABAN CHATBOT ===
+  const responses = {
+    "rekomendasi": "Coba tonton *Inception*, *Interstellar*, atau *Avengers: Endgame*.",
+    "horor": "Kalau suka horor, coba nonton *The Conjuring* atau *Insidious*.",
+    "anime": "Film anime seru: *Your Name*, *Spirited Away*, atau *A Silent Voice*.",
+    "action": "Film action seru: *John Wick*, *Mad Max: Fury Road*, atau *The Dark Knight*.",
+    "komedi": "Film komedi lucu: *Mr. Bean's Holiday*, *Johnny English*, atau *Home Alone*."
+  };
+
+  const chatMessages = document.getElementById("chatMessages");
+  const userInput = document.getElementById("userInput");
+
+  function sendMessage() {
+    let message = userInput.value.trim();
+    if (message === "") return;
+
+    appendMessage(message, "user");
+    userInput.value = "";
+
+    setTimeout(() => {
+      let botReply = getBotReply(message);
+      appendMessage(botReply, "bot");
+    }, 500);
+  }
+
+  function appendMessage(text, sender) {
+    let div = document.createElement("div");
+    div.classList.add("message", sender);
+    div.innerText = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function getBotReply(input) {
+    input = input.toLowerCase();
+    for (let key in responses) {
+      if (input.includes(key)) {
+        return responses[key];
+      }
+    }
+    return "Maaf, aku belum paham. Coba ketik misalnya: 'rekomendasi film horor'.";
+  }
+</script>
+
+</body>
+</html>
