@@ -3,110 +3,435 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chatbot Film</title>
+  <title>ChatDong - Donghua Expert</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
-      background: #1c1c1c;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
     }
 
     .chat-container {
-      width: 360px;
-      height: 600px;
-      background: #2c2c2c;
-      border-radius: 15px;
+      width: 100%;
+      max-width: 400px;
+      height: 700px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .chat-header {
-      background: #ff4444;
+      background: linear-gradient(45deg, #362c49, #31094d);
       color: white;
-      padding: 15px;
       text-align: center;
-      font-weight: bold;
+      position: relative;
+    } 
+
+    .chat-header img {
+      height: 40px;
+      margin-top: 10px;
+      margin-bottom: 10px;
     }
 
     .chat-messages {
       flex: 1;
-      padding: 10px;
+      padding: 15px;
       overflow-y: auto;
       color: white;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .message {
-      margin: 8px 0;
-      padding: 10px;
-      border-radius: 10px;
-      max-width: 75%;
+      padding: 12px 15px;
+      border-radius: 15px;
+      max-width: 85%;
+      word-wrap: break-word;
+      animation: fadeIn 0.3s ease-in;
     }
 
     .bot {
-      background: #444;
+      background: rgba(255, 255, 255, 0.2);
       align-self: flex-start;
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .user {
-      background: #ff4444;
+      background: linear-gradient(45deg, #ff6b6b, #ee5a24);
       align-self: flex-end;
+      color: white;
     }
+
+    .typing-indicator {
+      display: none;
+      padding: 10px 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      align-self: flex-start;
+      max-width: 85px;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: white;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dots span:nth-child(1) { animation-delay: 0s; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 
     .chat-input {
       display: flex;
-      border-top: 1px solid #444;
-      background: #1c1c1c;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      gap: 10px;
     }
 
     .chat-input input {
       flex: 1;
-      padding: 12px;
+      padding: 12px 15px;
       border: none;
       outline: none;
-      background: transparent;
+      background: rgba(255, 255, 255, 0.2);
       color: white;
+      border-radius: 25px;
+      font-size: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .chat-input input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
     }
 
     .chat-input button {
-      background: #ff4444;
+      background: linear-gradient(45deg, #ff6b6b, #ee5a24);
       color: white;
       border: none;
-      padding: 0 20px;
+      padding: 12px 20px;
       cursor: pointer;
+      border-radius: 25px;
+      font-weight: bold;
+      transition: transform 0.2s ease;
+    }
+
+    .chat-input button:hover {
+      transform: scale(1.05);
+    }
+
+    .chat-input button:active {
+      transform: scale(0.95);
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .suggestion-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 6px 12px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .suggestion-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-10px); }
+    }
+
+    /* Custom scrollbar */
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    .donghua-title {
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    .rating {
+      color: #ffd700;
     }
   </style>
 </head>
 <body>
 
 <div class="chat-container">
-  <div class="chat-header">ChatDong</div>
+  <div class="chat-header">
+    <img src="LogoWEB.png">
+  </div>
   <div class="chat-messages" id="chatMessages">
-    <div class="message bot">Halo! Mau cari film apa hari ini?</div>
+    <div class="message bot">
+      Halo! Aku ChatDong, ahli donghua (animasi China) 🐉<br><br>
+      Aku bisa bantu kamu cari donghua yang cocok berdasarkan genre, tahun, atau mood yang kamu inginkan!
+      <div class="suggestions">
+        <button class="suggestion-btn" onclick="sendSuggestion('rekomendasi donghua terbaik')">Rekomendasi Terbaik</button>
+        <button class="suggestion-btn" onclick="sendSuggestion('donghua action')">Action</button>
+        <button class="suggestion-btn" onclick="sendSuggestion('donghua romance')">Romance</button>
+        <button class="suggestion-btn" onclick="sendSuggestion('donghua 2025')">Terbaru 2025</button>
+      </div>
+    </div>
+  </div>
+  <div class="typing-indicator" id="typingIndicator">
+    <div class="typing-dots">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   </div>
   <div class="chat-input">
-    <input type="text" id="userInput" placeholder="Ketik pesan...">
+    <input type="text" id="userInput" placeholder="Tanya tentang donghua...">
     <button onclick="sendMessage()">Kirim</button>
   </div>
 </div>
 
 <script>
-  // === DATA JAWABAN CHATBOT ===
-  const responses = {
-    "rekomendasi": "Coba tonton *Inception*, *Interstellar*, atau *Avengers: Endgame*.",
-    "horor": "Kalau suka horor, coba nonton *The Conjuring* atau *Insidious*.",
-    "anime": "Film anime seru: *Your Name*, *Spirited Away*, atau *A Silent Voice*.",
-    "action": "Film action seru: *John Wick*, *Mad Max: Fury Road*, atau *The Dark Knight*.",
-    "komedi": "Film komedi lucu: *Mr. Bean's Holiday*, *Johnny English*, atau *Home Alone*."
+  // ========================================
+  // === MEMORI CHATBOT (DATABASE DONGHUA) ===
+  // ========================================
+  
+  const donghuaDatabase = {
+    // Donghua Action/Fantasy
+    action: {
+      titles: [
+        {
+          name: "Battle Through The Heavens (Doupo Cangqiong)",
+          year: "2018-sekarang",
+          rating: "9.2/10",
+          genre: "Action, Fantasy, Romance",
+          description: "Mengikuti Xiao Yan dalam perjalanannya membangun kembali kekuatan dan membalas dendam. Adaptasi dari novel web populer.",
+          episodes: "5 season, 100+ episode",
+          status: "Ongoing"
+        },
+        {
+          name: "The King's Avatar (Quan Zhi Gao Shou)",
+          year: "2017-2022",
+          rating: "9.0/10",
+          genre: "Gaming, Sports, Drama",
+          description: "Tentang pro gamer yang dipaksa pensiun dan membangun tim baru. Sangat populer di kalangan gamer.",
+          episodes: "3 season",
+          status: "Completed"
+        },
+        {
+          name: "Mo Dao Zu Shi (Grandmaster of Demonic Cultivation)",
+          year: "2018-2021",
+          rating: "9.5/10",
+          genre: "Historical, Fantasy, BL",
+          description: "Cerita kultivasi dengan unsur Boys' Love. Animasi dan musik yang luar biasa.",
+          episodes: "3 season",
+          status: "Completed"
+        },
+        {
+          name: "Soul Land (Douluo Dalu)",
+          year: "2018-sekarang",
+          rating: "8.8/10",
+          genre: "Action, Fantasy, Adventure",
+          description: "Tang San terlahir kembali di dunia dengan sistem kekuatan jiwa. Sangat populer.",
+          episodes: "200+ episode",
+          status: "Ongoing"
+        }
+      ]
+    },
+
+    // Donghua Romance
+    romance: {
+      titles: [
+        {
+          name: "Heaven Official's Blessing (Tian Guan Ci Fu)",
+          year: "2020-sekarang",
+          rating: "9.3/10",
+          genre: "Romance, Fantasy, Historical, BL",
+          description: "Tentang pangeran yang jatuh dari surga dan dewa misterius. Visual yang memukau.",
+          episodes: "2 season",
+          status: "Ongoing"
+        },
+        {
+          name: "My Wife is the Student Council President",
+          year: "2019",
+          rating: "7.5/10",
+          genre: "Romance, School, Comedy",
+          description: "Komedi romantis sekolah yang ringan dan menghibur.",
+          episodes: "12 episode",
+          status: "Completed"
+        },
+        {
+          name: "Love Between Fairy and Devil (Cang Lan Jue)",
+          year: "2022",
+          rating: "8.9/10",
+          genre: "Romance, Fantasy, Xianxia",
+          description: "Donghua adaptasi dari drama populer tentang cinta antara peri dan iblis.",
+          episodes: "36 episode",
+          status: "Completed"
+        }
+      ]
+    },
+
+    // Donghua Terbaru 2023-2024
+    recent: {
+      titles: [
+        {
+          name: "Perfect World (Wanmei Shijie)",
+          year: "2021-2023",
+          rating: "8.7/10",
+          genre: "Action, Fantasy, Adventure",
+          description: "Mengikuti Shi Hao dari kecil hingga menjadi penguasa. Animasi berkualitas tinggi.",
+          episodes: "3 season, 100+ episode",
+          status: "Ongoing"
+        },
+        {
+          name: "Swallowed Star (Tunshi Xingkong)",
+          year: "2020-2023",
+          rating: "8.5/10",
+          genre: "Sci-fi, Action, Adventure",
+          description: "Bumi diserang monster, manusia harus berevolusi untuk bertahan hidup.",
+          episodes: "3 season",
+          status: "Ongoing"
+        },
+        {
+          name: "A Record of Mortal's Journey to Immortality",
+          year: "2020-2023",
+          rating: "8.6/10",
+          genre: "Fantasy, Cultivation, Adventure",
+          description: "Kultivator biasa yang perlahan naik level menuju keabadian.",
+          episodes: "3 season",
+          status: "Ongoing"
+        }
+      ]
+    },
+
+    // Donghua Comedy/Slice of Life
+    comedy: {
+      titles: [
+        {
+          name: "Daily Life of the Immortal King",
+          year: "2020-2022",
+          rating: "8.4/10",
+          genre: "Comedy, School, Supernatural",
+          description: "Komedi tentang siswa SMA yang adalah kultivator terkuat tapi ingin hidup normal.",
+          episodes: "2 season",
+          status: "Completed"
+        },
+        {
+          name: "Please Take My Brother Away",
+          year: "2018-2020",
+          rating: "8.0/10",
+          genre: "Comedy, Slice of Life, Family",
+          description: "Komedi keluarga tentang kakak-adik yang selalu bertengkar tapi saling sayang.",
+          episodes: "4 season",
+          status: "Completed"
+        }
+      ]
+    },
+
+    // Keywords untuk pencarian
+    keywords: {
+      "terbaik": "action",
+      "populer": "action", 
+      "bagus": "action",
+      "action": "action",
+      "pertarungan": "action",
+      "fighting": "action",
+      "battle": "action",
+      "romance": "romance",
+      "cinta": "romance",
+      "romantic": "romance",
+      "bl": "romance",
+      "boys love": "romance",
+      "yaoi": "romance",
+      "2023": "recent",
+      "2024": "recent",
+      "terbaru": "recent",
+      "baru": "recent",
+      "ongoing": "recent",
+      "comedy": "comedy",
+      "komedi": "comedy",
+      "lucu": "comedy",
+      "funny": "comedy",
+      "slice of life": "comedy"
+    }
   };
+
+  // Database tambahan untuk respons umum
+  const generalResponses = {
+    greeting: [
+      "Halo! Aku siap membantu kamu cari donghua yang seru! 🐉",
+      "Hi! Ada donghua yang mau kamu cari? Aku punya banyak rekomendasi nih!",
+      "Halo! Mau nonton donghua apa hari ini? Cerita soal preferensi kamu dong!"
+    ],
+    
+    thanks: [
+      "Sama-sama! Semoga nonton donghuanya seru ya! 😊",
+      "Senang bisa bantu! Jangan lupa share pendapat kamu setelah nonton!",
+      "You're welcome! Kapan-kapan tanya lagi ya kalau butuh rekomendasi donghua lainnya!"
+    ],
+
+    unknown: [
+      "Hmm, aku belum paham. Coba tanya tentang genre donghua seperti 'action', 'romance', atau 'comedy'?",
+      "Maaf aku bingung 😅 Mungkin bisa tanya lebih spesifik? Misalnya 'donghua action terbaik' atau 'rekomendasi donghua 2023'?",
+      "Aku belum mengerti pertanyaan kamu. Coba ketik 'rekomendasi donghua' atau sebutkan genre yang kamu suka!"
+    ]
+  };
+
+  // ========================================
+  // === FUNGSI CHATBOT ===
+  // ========================================
 
   const chatMessages = document.getElementById("chatMessages");
   const userInput = document.getElementById("userInput");
+  const typingIndicator = document.getElementById("typingIndicator");
+
+  // Event listener untuk Enter key
+  userInput.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  });
 
   function sendMessage() {
     let message = userInput.value.trim();
@@ -115,29 +440,106 @@
     appendMessage(message, "user");
     userInput.value = "";
 
+    showTypingIndicator();
+    
     setTimeout(() => {
+      hideTypingIndicator();
       let botReply = getBotReply(message);
       appendMessage(botReply, "bot");
-    }, 500);
+    }, 1000 + Math.random() * 1000); // Random delay 1-2 detik
+  }
+
+  function sendSuggestion(text) {
+    userInput.value = text;
+    sendMessage();
   }
 
   function appendMessage(text, sender) {
     let div = document.createElement("div");
     div.classList.add("message", sender);
-    div.innerText = text;
+    div.innerHTML = text; // Menggunakan innerHTML untuk mendukung HTML formatting
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
+  function showTypingIndicator() {
+    typingIndicator.style.display = "block";
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    typingIndicator.style.display = "none";
+  }
+
   function getBotReply(input) {
-    input = input.toLowerCase();
-    for (let key in responses) {
-      if (input.includes(key)) {
-        return responses[key];
+    input = input.toLowerCase().trim();
+    
+    // Cek greeting
+    if (input.includes("halo") || input.includes("hi") || input.includes("hello")) {
+      return getRandomResponse(generalResponses.greeting);
+    }
+    
+    // Cek thanks
+    if (input.includes("terima kasih") || input.includes("thanks") || input.includes("makasih")) {
+      return getRandomResponse(generalResponses.thanks);
+    }
+    
+    // Cari berdasarkan keyword
+    for (let keyword in donghuaDatabase.keywords) {
+      if (input.includes(keyword)) {
+        let category = donghuaDatabase.keywords[keyword];
+        return formatDonghuaList(donghuaDatabase[category], category);
       }
     }
-    return "Maaf, aku belum paham. Coba ketik misalnya: 'rekomendasi film horor'.";
+    
+    // Cek untuk kata "rekomendasi" umum
+    if (input.includes("rekomendasi") || input.includes("recommend") || input.includes("suggest")) {
+      return formatDonghuaList(donghuaDatabase.action, "action", "Ini beberapa donghua terbaik yang wajib kamu tonton:");
+    }
+    
+    // Response default
+    return getRandomResponse(generalResponses.unknown);
   }
+
+  function formatDonghuaList(data, category, customIntro = null) {
+    if (!data || !data.titles) return "Maaf, data tidak ditemukan 😅";
+    
+    let intro = customIntro || getCategoryIntro(category);
+    let result = intro + "<br><br>";
+    
+    // Ambil 3-4 donghua teratas
+    let selectedTitles = data.titles.slice(0, Math.min(4, data.titles.length));
+    
+    selectedTitles.forEach((donghua, index) => {
+      result += `<span class="donghua-title">${index + 1}. ${donghua.name}</span><br>`;
+      result += `📅 ${donghua.year} | <span class="rating">⭐ ${donghua.rating}</span><br>`;
+      result += `🎭 ${donghua.genre}<br>`;
+      result += `📺 ${donghua.episodes}<br>`;
+      result += `${donghua.description}<br><br>`;
+    });
+    
+    result += "Mau rekomendasi genre lain? Tanya aja! 😊";
+    return result;
+  }
+
+  function getCategoryIntro(category) {
+    const intros = {
+      action: "Ini donghua action/fantasy terbaik yang harus kamu tonton! 🔥",
+      romance: "Donghua romance yang bikin baper nih! 💕",
+      recent: "Donghua terbaru yang lagi hits! ✨",
+      comedy: "Donghua comedy yang dijamin bikin ketawa! 😂"
+    };
+    return intros[category] || "Rekomendasi donghua pilihan:";
+  }
+
+  function getRandomResponse(responses) {
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  // Auto-focus input saat halaman dimuat
+  window.addEventListener('load', function() {
+    userInput.focus();
+  });
 </script>
 
 </body>
